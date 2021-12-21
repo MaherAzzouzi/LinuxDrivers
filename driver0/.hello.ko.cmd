@@ -1,1 +1,1 @@
-cmd_/home/maher/lkm/driver0/hello.ko := ld -r  -m elf_x86_64  --build-id=sha1  -T scripts/module.lds -o /home/maher/lkm/driver0/hello.ko /home/maher/lkm/driver0/hello.o /home/maher/lkm/driver0/hello.mod.o;  true
+cmd_/home/maher/lkm/driver0/hello.ko := ld -r -m elf_x86_64  --build-id=sha1  -T scripts/module.lds -o /home/maher/lkm/driver0/hello.ko /home/maher/lkm/driver0/hello.o /home/maher/lkm/driver0/hello.mod.o;  true
