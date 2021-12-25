@@ -43,6 +43,7 @@ static int device_open(struct inode *inode, struct file *file)
     {
         printk(KERN_ALERT "Opened for Writing and Reading.\n");
     }
+
     return 0;
 }
 
