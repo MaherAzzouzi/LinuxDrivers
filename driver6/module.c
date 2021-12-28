@@ -3,13 +3,36 @@
 #include <linux/init.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
+#include <linux/uio.h>
 
 static dev_t first;
 static struct cdev *cdev;
 static struct class *cls;
 
+static ssize_t driver6_read(struct file* filp, char __user *buf, size_t count, loff_t *ppos);
+static ssize_t driver6_write(struct file* filp, const char __user *buf, size_t count, loff_t *ppos);
+
+// it turns out that there is no readv and writev in newer kernels.
+// shit! things got complicated!
+static ssize_t driver6_writev(struct file* filp, const struct iovec *iov, unsigned long count, loff_t *ppos)
+{
+    int i;
+
+    for(i = 0; i < count ; i++)
+    {
+        driver6_write(filp, iov[i].iov_base, iov[i].iov_len, ppos);
+    }
+    return 0;
+}
+
 static ssize_t driver6_readv(struct file* filp, const struct iovec *iov, unsigned long count, loff_t *ppos)
 {
+    int i;
+
+    for(i = 0; i < count; i++)
+    {
+        driver6_read(filp, iov[i].iov_base, iov[i].iov_len, ppos);
+    }
     return 0;
 }
 
@@ -29,6 +52,7 @@ static struct file_operations fops =
 {
     .read = driver6_read,
     .write = driver6_write,
+
 };
 
 static int __init driver_initialization(void)

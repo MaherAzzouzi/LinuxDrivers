@@ -1,1 +1,0 @@
-cmd_/home/maher/kernel/lkm/LinuxDrivers/driver5/module.ko := ld -r  -m elf_x86_64  --build-id=sha1  -T scripts/module.lds -o /home/maher/kernel/lkm/LinuxDrivers/driver5/module.ko /home/maher/kernel/lkm/LinuxDrivers/driver5/module.o /home/maher/kernel/lkm/LinuxDrivers/driver5/module.mod.o;  true

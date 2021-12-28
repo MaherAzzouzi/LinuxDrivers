@@ -1,1 +1,0 @@
-cmd_/home/maher/kernel/lkm/LinuxDrivers/driver5/modules.order := {   echo /home/maher/kernel/lkm/LinuxDrivers/driver5/module.ko; :; } | awk '!x[$$0]++' - > /home/maher/kernel/lkm/LinuxDrivers/driver5/modules.order
