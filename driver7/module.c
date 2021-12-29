@@ -5,8 +5,13 @@
 #include <linux/kdev_t.h>
 #include <linux/device.h>
 #include <linux/stat.h>
-#include <linux/proc_fs.h>
+#include <linux/seq_file.h>
+#include <linux/slab.h>
 
+// operations on proc_dir_entry is not working properly when including <linux/proc_fs.h>
+// I included it by path here.
+#include "/home/maher/kernel/buildroot/output/build/linux-5.15/fs/proc/internal.h"
+//#include <linux/proc_fs.h>
 #define DEBUG_MODE 1
 
 #undef MYDEBUG
@@ -47,6 +52,66 @@ static loff_t module_lseek(struct file* file, loff_t fpos, int count)
     MYDEBUG("module_lseek() called!\n");
     return count;
 }
+
+
+static void *device_start(struct seq_file* s, loff_t *pos)
+{
+    loff_t *spos;
+
+    spos = kmalloc(sizeof(*pos),GFP_KERNEL);
+    if (!spos)
+        return NULL;
+    *spos = *pos;
+    MYDEBUG("Start is called!\n");
+    seq_printf(s, "device start!\n");
+    return spos;
+}
+
+static void *device_next(struct seq_file* s, void* v, loff_t *pos)
+{
+    loff_t *spos = v;
+    *pos = ++*spos;
+
+    seq_printf(s, "device next!\n");
+    return spos;
+}
+
+static void device_stop(struct seq_file* s, void *v)
+{
+    kfree(v);
+    seq_printf(s, "device stop!\n");
+    return;
+}
+
+static int device_show(struct seq_file* s, void *v)
+{
+    loff_t *spos = v;
+    seq_printf(s, "Hello from device_show()! %lld\n", (long long)*spos);
+    return 0;
+}
+
+// now that we implemented seq_operations we need to connect it to our
+// /proc file we need file_operations (same as char drivers)
+static struct seq_operations sops = {
+    .start = device_start,
+    .next = device_next,
+    .stop = device_stop,
+    .show = device_show
+};
+
+static int file_proc_open(struct inode* inode, struct file* filp)
+{
+    return seq_open(filp, &sops);
+}
+
+static const struct file_operations fops = {
+    .owner = THIS_MODULE,
+    .open = file_proc_open,
+    .read = seq_read,
+    .llseek = seq_lseek,
+    .release = seq_release,
+};
+
 
 static struct proc_ops proc_ops =
 {
@@ -102,7 +167,7 @@ static int __init debugm_start(void)
     }
 
     struct proc_dir_entry *pdir;
-
+    
     pdir = proc_mkdir("maherdir", NULL);
     if (IS_ERR(pdir))
     {
@@ -110,22 +175,29 @@ static int __init debugm_start(void)
         return PTR_ERR(pdir);
     }
 
-    pdir = proc_create("maherproc", 0660,  pdir, &proc_ops);
+    /*
+    pdir = proc_create("maherproc", 0,  NULL, &proc_ops);
     if (IS_ERR(pdir))
     {
         MYDEBUG("Failed to create /proc entry!\n");
         return PTR_ERR(pdir);
     }
-    
-    pdir = proc_create("maherproc0", 0660, pdir, &proc_ops);
+    */
+    pdir = proc_create_seq_private("maherproc", 0, NULL, &sops, 0, NULL);
     if (IS_ERR(pdir))
     {
-        MYDEBUG("Failed to create subfolder inside /proc!\n");
+        MYDEBUG("proc_create_seq_private failed!");
         return PTR_ERR(pdir);
     }
+    // For some reason I can't assign it here, I googled for the error.
+    // It's just telling me that struct proc_dir_entry is incomplete.
+
+    // pdir->proc_dir_ops = &fops;
 
     return 0;
 }
+
+
 
 static void __exit debugm_exit(void)
 {
