@@ -81,6 +81,7 @@ static int __init driver_initialization(void)
     }
 
     cdev = cdev_alloc();
+    cdev_add(cdev, first, 1);
     cdev->ops = &fops;
 
     return 0;
