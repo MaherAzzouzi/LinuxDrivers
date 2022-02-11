@@ -73,7 +73,6 @@ static struct file_operations fops = {
 static int __init mymodule_init(void)
 {
     int ret;
-
     ret = alloc_chrdev_region(&first, 0, 1, "driver8");
     if (ret < 0)
     {
